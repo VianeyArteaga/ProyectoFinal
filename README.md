@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 - [Docker Scout](#docker-scout)
 - [Usage](#usage)
 - [CLI Plugin Installation](#cli-plugin-installation)
@@ -399,3 +400,6 @@ This example assumes two secrets to be available to authenticate against Docker 
 ## License
 
 The Docker Scout CLI is licensed under the Terms and Conditions of the [Docker Subscription Service Agreement](https://www.docker.com/legal/docker-subscription-service-agreement/). 
+=======
+# scout-cli
+>>>>>>> 78fa944723090b2a0ce9bc1f25a85ecbdd8061b1
