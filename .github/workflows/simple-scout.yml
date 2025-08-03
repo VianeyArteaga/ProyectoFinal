@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Image
-        run: docker build -t mi-imagen:latest .
+        run: docker build -t proyecto:latest .
 
       - name: Descargar e instalar Docker Scout CLI
         run: curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
