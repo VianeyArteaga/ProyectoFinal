@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t vianeyarteaga/proyectofinal:latest .
+        run: docker build -t mjtaehyung/proyecto:latest .
 
       - name: Download Docker Scout CLI
         run: |
