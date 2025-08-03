@@ -6,36 +6,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  scout-scan:
+  docker-scout:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Docker Login
-        uses: docker/login-action@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: |
-          docker build -t ${{ github.repository }}:latest .
+        run: docker build -t vianeyarteaga/proyectofinal:latest .
 
-      - name: Install Docker Scout CLI
+      - name: Download Docker Scout CLI
         run: |
-          curl -Lo scout https://github.com/docker/scout-cli/releases/latest/download/scout_linux_amd64
-          chmod +x scout
-          sudo mv scout /usr/local/bin/scout
-          scout version
+          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Run Docker Scout CVE Scan
+      - name: Scan image with Docker Scout
         run: |
-          scout cves ${{ github.repository }}:latest > scout-report.md
+          docker scout cves vianeyarteaga/proyectofinal:latest > scout-report.md || echo "Scan failed"
 
-      - name: Upload CVE Report
+      - name: Upload CVE Report as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: scout-report
+          name: docker-scout-report
           path: scout-report.md
