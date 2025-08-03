@@ -29,7 +29,7 @@ jobs:
         run: ./docker-scout cves mi-imagen:latest --format markdown --output reporte.md || true
 
       - name: Subir reporte como artefacto
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: reporte-scout
           path: reporte.md
