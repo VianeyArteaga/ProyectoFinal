@@ -1,9 +1,8 @@
-name: Docker Scout CI Scan
+name: CI with Docker Scout
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   scout-scan:
@@ -13,9 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -23,14 +19,12 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: |
-          docker build -t mjtaehyung/proyecto:latest .
+        run: docker build -t mjtaehyung/proyecto:latest .
 
       - name: Scan Docker image with Scout CLI
         id: scan
         run: |
-          docker scout cves mjtaehyung/proyecto:latest --format markdown > scout-report.md
-          # Buscar si hay vulnerabilidades críticas en el reporte y marcar output para condiciones posteriores
+          docker scout cves mjtaehyung/proyecto:latest > scout-report.md
           if grep -q "CRITICAL" scout-report.md; then
             echo "has_critical_vulnerabilities=true" >> $GITHUB_OUTPUT
           else
@@ -43,6 +37,8 @@ jobs:
           name: scout-report
           path: scout-report.md
 
-      - name: Fail if critical vulnerabilities found
+      - name: Fail on critical vulnerabilities
         if: steps.scan.outputs.has_critical_vulnerabilities == 'true'
-        run: exit 1
+        run: |
+          echo "Critical vulnerabilities found! Failing the pipeline."
+          exit 1
