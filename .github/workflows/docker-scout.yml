@@ -21,10 +21,19 @@ jobs:
       - name: Build Docker image
         run: docker build -t mjtaehyung/proyecto:latest .
 
+      - name: Install Docker Scout CLI
+        run: |
+          # Descarga la última versión de scout-cli para Linux AMD64
+          curl -Lo scout https://github.com/docker/scout-cli/releases/latest/download/scout_linux_amd64
+          chmod +x scout
+          sudo mv scout /usr/local/bin/scout
+          # Verifica instalación
+          scout --version
+
       - name: Scan Docker image with Scout CLI
         id: scan
         run: |
-          docker scout cves mjtaehyung/proyecto:latest > scout-report.md
+          scout cves mjtaehyung/proyecto:latest > scout-report.md
           if grep -q "CRITICAL" scout-report.md; then
             echo "has_critical_vulnerabilities=true" >> $GITHUB_OUTPUT
           else
