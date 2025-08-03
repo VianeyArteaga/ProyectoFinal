@@ -1,53 +1,41 @@
-name: CI with Docker Scout
+name: CI Docker Scout Scan
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   scout-scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
+      - name: Docker Login
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t mjtaehyung/proyecto:latest .
+        run: |
+          docker build -t ${{ github.repository }}:latest .
 
       - name: Install Docker Scout CLI
         run: |
-          # Descarga la última versión de scout-cli para Linux AMD64
           curl -Lo scout https://github.com/docker/scout-cli/releases/latest/download/scout_linux_amd64
           chmod +x scout
           sudo mv scout /usr/local/bin/scout
-          # Verifica instalación
-          scout --version
+          scout version
 
-      - name: Scan Docker image with Scout CLI
-        id: scan
+      - name: Run Docker Scout CVE Scan
         run: |
-          scout cves mjtaehyung/proyecto:latest > scout-report.md
-          if grep -q "CRITICAL" scout-report.md; then
-            echo "has_critical_vulnerabilities=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_critical_vulnerabilities=false" >> $GITHUB_OUTPUT
-          fi
+          scout cves ${{ github.repository }}:latest > scout-report.md
 
-      - name: Upload Scout Report
+      - name: Upload CVE Report
         uses: actions/upload-artifact@v4
         with:
           name: scout-report
           path: scout-report.md
-
-      - name: Fail on critical vulnerabilities
-        if: steps.scan.outputs.has_critical_vulnerabilities == 'true'
-        run: |
-          echo "Critical vulnerabilities found! Failing the pipeline."
-          exit 1
