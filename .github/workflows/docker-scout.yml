@@ -1,0 +1,62 @@
+name: Docker Scout Security Scan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  scout-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t mjtaehyung/proyecto:latest .
+
+      - name: Scan Docker image with Docker Scout CLI
+        id: scan
+        run: |
+          docker scout cves mjtaehyung/proyecto:latest --format markdown > scout-report.md || true
+          # Detectar vulnerabilidades críticas
+          if docker scout cves mjtaehyung/proyecto:latest --only-severity critical | grep -q 'Vulnerabilities found'; then
+            echo "::set-output name=has_critical_vulnerabilities::true"
+          else
+            echo "::set-output name=has_critical_vulnerabilities::false"
+          fi
+
+      - name: Fail if critical vulnerabilities found
+        if: steps.scan.outputs.has_critical_vulnerabilities == 'true'
+        run: |
+          echo "Critical vulnerabilities found! Failing the pipeline."
+          exit 1
+
+      - name: Upload Scout Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: scout-report
+          path: scout-report.md
+
+      # Opcional: Notificar Slack o email (requiere configuración adicional)
+      # - name: Send Slack Notification
+      #   uses: slackapi/slack-github-action@v1.23.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "Docker Scout Scan report is ready. Check the workflow artifacts."
+      #       }
+      #   env:
+      #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
