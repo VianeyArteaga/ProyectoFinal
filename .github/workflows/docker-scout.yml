@@ -28,7 +28,7 @@ jobs:
 
       - name: Scan image with Docker Scout
         run: |
-          docker scout cves mjtaehyung/proyecto:latest > scout-report.md || echo "Scan failed"
+          docker scout cves mjtaehyung/proyecto:latest | tee scout-report.md
 
       - name: Upload CVE Report as Artifact
         uses: actions/upload-artifact@v4
