@@ -33,9 +33,9 @@ jobs:
           docker-scout cves mjtaehyung/proyecto:latest 2>&1 | tee reporte.md
 
           if grep -q "No vulnerabilities" reporte.md; then
-            echo "✅ Imagen sin vulnerabilidades detectadas." >> reporte.md
+            echo " Imagen sin vulnerabilidades detectadas." >> reporte.md
           elif [ ! -s reporte.md ]; then
-            echo "⚠️ Error: No se generó el reporte correctamente." >> reporte.md
+            echo " Error: No se generó el reporte correctamente." >> reporte.md
           fi
 
       - name: Ver reporte en consola
