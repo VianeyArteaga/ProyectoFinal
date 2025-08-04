@@ -26,14 +26,14 @@ jobs:
       - name: Scan pushed Docker Hub image with Docker Scout
         run: |
           echo "=== Ejecutando docker scout cves ==="
-          docker scout cves mjtaehyung/proyecto:latest | tee reporte.md
+          docker scout cves mjtaehyung/proyecto:latest 2>&1 | tee reporte.md
+
           if [ ! -s reporte.md ]; then
-            echo "No vulnerabilities found or scan returned empty."
-            echo "No vulnerabilities found." > reporte.md
+            echo "No vulnerabilities found or scan returned empty." | tee reporte.md
           fi
 
       - name: Show CVE Report in console (for debugging)
-        run: cat reporte.md
+        run: cat reporte.md || echo "No report content"
 
       - name: Upload CVE Report as Artifact
         uses: actions/upload-artifact@v4
