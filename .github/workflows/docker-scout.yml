@@ -19,23 +19,26 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Download Docker Scout CLI
+      - name: Install Docker Scout CLI
         run: |
-          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install.sh
+          chmod +x install.sh
+          ./install.sh -b /usr/local/bin
+          docker scout version || echo "Docker Scout CLI no se instaló correctamente"
 
-      - name: Scan pushed Docker Hub image with Docker Scout
+      - name: Run Docker Scout CVE Scan
         run: |
           echo "=== Ejecutando docker scout cves ==="
           docker scout cves mjtaehyung/proyecto:latest 2>&1 | tee reporte.md
 
           if [ ! -s reporte.md ]; then
-            echo "No vulnerabilities found or scan returned empty." | tee reporte.md
+            echo "No se encontraron vulnerabilidades o el análisis falló." > reporte.md
           fi
 
-      - name: Show CVE Report in console (for debugging)
-        run: cat reporte.md || echo "No report content"
+      - name: Mostrar reporte en consola
+        run: cat reporte.md
 
-      - name: Upload CVE Report as Artifact
+      - name: Subir reporte como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: reporte-scout
