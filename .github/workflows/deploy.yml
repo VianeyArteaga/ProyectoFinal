@@ -34,7 +34,7 @@ jobs:
           curl -L https://github.com/docker/scout-cli/releases/latest/download/docker-scout-linux-amd64 -o docker-scout
           chmod +x docker-scout
           sudo mv docker-scout /usr/local/bin/
-          docker scout --help
+          docker-scout --help
 
       - name: Login en Docker Hub
         uses: docker/login-action@v3
@@ -50,9 +50,9 @@ jobs:
         run: |
           docker push mjtaehyung/proyecto:latest
 
-      - name: Escanear imagen con Docker Scout
+      - name: Escanear imagen con Docker Scout CLI standalone
         run: |
-          docker scout quickview mjtaehyung/proyecto:latest
+          docker-scout quickview mjtaehyung/proyecto:latest
 
       - name: Cargar variables de entorno
         run: |
