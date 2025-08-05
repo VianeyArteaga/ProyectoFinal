@@ -26,8 +26,8 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
           echo "$HOME/.docker/cli-plugins" >> $GITHUB_PATH
 
-      - name: Escanear imagen con Docker Scout y guardar salida
-        run: docker scout cves mjtaehyung/proyecto:latest --format json > scout_output.json 2>/dev/null || true
+      - name: Escanear imagen con Docker Scout y guardar salida SARIF
+        run: docker scout cves mjtaehyung/proyecto:latest --format sarif > scout_output.json 2>/dev/null || true
 
       - name: Crear issue si hay vulnerabilidades críticas
         uses: actions/github-script@v6
@@ -42,27 +42,41 @@ jobs:
               return;
             }
 
-            let output;
+            let sarif;
             try {
-              output = JSON.parse(outputRaw);
+              sarif = JSON.parse(outputRaw);
             } catch (e) {
               console.log("No es JSON válido, salida capturada:");
               console.log(outputRaw);
               return;
             }
 
-            if (!output.vulnerabilities) {
-              console.log("No se encontraron vulnerabilidades o formato inesperado.");
+            // El SARIF tiene la estructura estándar, las vulnerabilidades están en runs[*].results
+            if (!sarif.runs || sarif.runs.length === 0) {
+              console.log("No se encontraron vulnerabilidades o formato SARIF inesperado.");
               return;
             }
 
-            const criticalVulns = output.vulnerabilities.filter(v => v.severity === 'critical');
+            // Extraer todos los resultados (vulnerabilidades)
+            const results = sarif.runs.flatMap(run => run.results || []);
+
+            // Filtrar vulnerabilidades críticas según severity (severities pueden variar, aquí usamos 'critical')
+            // En SARIF, severity puede estar en properties como 'severity' o 'level' dependiendo de la herramienta
+            const criticalVulns = results.filter(r => {
+              const sev = r.properties && r.properties.severity ? r.properties.severity.toLowerCase() :
+                          r.level ? r.level.toLowerCase() : '';
+              return sev === 'critical';
+            });
 
             if (criticalVulns.length > 0) {
               const issueTitle = `🚨 Vulnerabilidades críticas detectadas en la imagen Docker`;
               const issueBody = `Se detectaron **${criticalVulns.length}** vulnerabilidades críticas en la imagen \`mjtaehyung/proyecto:latest\`.\n\n` +
                                 `Detalles:\n` +
-                                criticalVulns.map(v => `- **${v.id}**: ${v.title} (Package: ${v.packageName})`).join('\n') +
+                                criticalVulns.map(v => {
+                                  const id = v.ruleId || "N/A";
+                                  const message = v.message && v.message.text ? v.message.text : "Sin descripción";
+                                  return `- **${id}**: ${message}`;
+                                }).join('\n') +
                                 `\n\nPor favor, revisa y corrige estas vulnerabilidades antes de continuar con el despliegue.`;
 
               const issues = await github.rest.issues.listForRepo({
