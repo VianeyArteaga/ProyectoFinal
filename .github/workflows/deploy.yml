@@ -7,16 +7,16 @@ on:
 
 jobs:
   build-scan-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # ubuntu-24.04 (noble)
 
     steps:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar Docker 24.0.5 (incluye docker scout)
+      - name: Instalar Docker última versión disponible
         run: |
           sudo apt-get update
-          sudo apt-get remove -y docker docker-engine docker.io containerd runc
+          sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
           sudo apt-get install -y \
             ca-certificates \
             curl \
@@ -27,7 +27,7 @@ jobs:
             "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
             $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
           sudo apt-get update
-          sudo apt-get install -y docker-ce=5:24.0.5~3-0~ubuntu-$(lsb_release -cs) docker-ce-cli=5:24.0.5~3-0~ubuntu-$(lsb_release -cs) containerd.io
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
       - name: Verificar versión de Docker y Docker Scout
         run: |
