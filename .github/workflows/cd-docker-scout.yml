@@ -18,8 +18,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Obtener versión del proyecto
+        id: get_version
+        run: |
+          VERSION=$(cat VERSION.txt)  # O usa package.json o tag de Git si prefieres
+          echo "Versión del proyecto: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Construir imagen Docker
-        run: docker build -t mjtaehyung/proyecto:latest .
+        run: |
+          docker build -t mjtaehyung/proyecto:latest -t mjtaehyung/proyecto:${{ steps.get_version.outputs.version }} .
 
       - name: Instalar Docker Scout
         run: |
@@ -51,20 +59,14 @@ jobs:
               return;
             }
 
-            // El SARIF tiene la estructura estándar, las vulnerabilidades están en runs[*].results
             if (!sarif.runs || sarif.runs.length === 0) {
               console.log("No se encontraron vulnerabilidades o formato SARIF inesperado.");
               return;
             }
 
-            // Extraer todos los resultados (vulnerabilidades)
             const results = sarif.runs.flatMap(run => run.results || []);
-
-            // Filtrar vulnerabilidades críticas según severity (severities pueden variar, aquí usamos 'critical')
-            // En SARIF, severity puede estar en properties como 'severity' o 'level' dependiendo de la herramienta
             const criticalVulns = results.filter(r => {
-              const sev = r.properties && r.properties.severity ? r.properties.severity.toLowerCase() :
-                          r.level ? r.level.toLowerCase() : '';
+              const sev = r.properties?.severity?.toLowerCase() || r.level?.toLowerCase() || '';
               return sev === 'critical';
             });
 
@@ -74,7 +76,7 @@ jobs:
                                 `Detalles:\n` +
                                 criticalVulns.map(v => {
                                   const id = v.ruleId || "N/A";
-                                  const message = v.message && v.message.text ? v.message.text : "Sin descripción";
+                                  const message = v.message?.text || "Sin descripción";
                                   return `- **${id}**: ${message}`;
                                 }).join('\n') +
                                 `\n\nPor favor, revisa y corrige estas vulnerabilidades antes de continuar con el despliegue.`;
@@ -105,6 +107,6 @@ jobs:
 
       - name: Subir imagen a Docker Hub
         if: success()
-        run: docker push mjtaehyung/proyecto:latest
-
-      
+        run: |
+          docker push mjtaehyung/proyecto:latest
+          docker push mjtaehyung/proyecto:${{ steps.get_version.outputs.version }}
