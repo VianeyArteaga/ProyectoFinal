@@ -20,12 +20,12 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Construir imagen Docker
-        run: docker build -t tu_usuario/nombre-del-proyecto:latest .
+        run: docker build -t mjtaehyung/proyecto:latest .
 
       - name: Subir imagen a Docker Hub
-        run: docker push tu_usuario/nombre-del-proyecto:latest
+        run: docker push mjtaehyung/proyecto:latest
 
       - name: Escanear imagen con Docker Scout
         run: |
-          docker scout quickview tu_usuario/nombre-del-proyecto:latest
-          docker scout cves tu_usuario/nombre-del-proyecto:latest
+          docker scout quickview mjtaehyung/proyecto:latest
+          docker scout cves mjtaehyung/proyecto:latest
