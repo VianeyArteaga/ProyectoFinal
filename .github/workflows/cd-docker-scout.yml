@@ -26,11 +26,55 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
           echo "$HOME/.docker/cli-plugins" >> $GITHUB_PATH
 
-      - name: Escanear imagen con Docker Scout
-        run: docker scout cves mjtaehyung/proyecto:latest
+      - name: Escanear imagen con Docker Scout y guardar salida
+        run: docker scout cves mjtaehyung/proyecto:latest --format json > scout_output.json || true
+
+      - name: Crear issue si hay vulnerabilidades críticas
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const output = JSON.parse(fs.readFileSync('scout_output.json', 'utf8'));
+            const criticalVulns = output.vulnerabilities.filter(v => v.severity === 'critical');
+
+            if (criticalVulns.length > 0) {
+              const issueTitle = `🚨 Vulnerabilidades críticas detectadas en la imagen Docker`;
+              const issueBody = `Se detectaron **${criticalVulns.length}** vulnerabilidades críticas en la imagen \`mjtaehyung/proyecto:latest\`.\n\n` +
+                                `Detalles:\n` +
+                                criticalVulns.map(v => `- **${v.id}**: ${v.title} (Package: ${v.packageName})`).join('\n') +
+                                `\n\nPor favor, revisa y corrige estas vulnerabilidades antes de continuar con el despliegue.`;
+
+              // Busca si ya hay un issue abierto con este título para evitar duplicados
+              const issues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: '',
+              });
+
+              const existing = issues.data.find(issue => issue.title === issueTitle);
+              if (!existing) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body: issueBody,
+                });
+                console.log("Issue creado por vulnerabilidades críticas.");
+              } else {
+                console.log("Ya existe un issue abierto con vulnerabilidades críticas.");
+              }
+
+              // Falla el paso para detener el pipeline
+              throw new Error("Se encontraron vulnerabilidades críticas. Se ha creado un issue.");
+            } else {
+              console.log("No se encontraron vulnerabilidades críticas.");
+            }
 
       - name: Subir imagen a Docker Hub
+        if: success()  # Solo si no hubo errores en pasos anteriores
         run: docker push mjtaehyung/proyecto:latest
 
-      - name: (Opcional) Desplegar imagen
+      - name: Desplegar imagen
+        if: success()
         run: echo "Aquí iría tu script de despliegue o notificación"
