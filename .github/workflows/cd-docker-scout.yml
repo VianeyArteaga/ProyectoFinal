@@ -2,7 +2,7 @@ name: CD Pipeline con Docker Scout
 
 on:
   push:
-    branches: ["main"]  # Ejecuta esto cada vez que haya push a la rama main
+    branches: ["main"]
 
 jobs:
   deploy:
@@ -21,8 +21,13 @@ jobs:
       - name: Construir imagen Docker
         run: docker build -t mjtaehyung/proyecto:latest .
 
+      - name: Instalar Docker Scout
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
+          sudo mv bin/scout /usr/local/bin/docker-scout
+
       - name: Escanear imagen con Docker Scout
-        run: docker scout cves mjtaehyung/proyecto:latest
+        run: docker-scout cves mjtaehyung/proyecto:latest
 
       - name: Subir imagen a Docker Hub
         run: docker push mjtaehyung/proyecto:latest
