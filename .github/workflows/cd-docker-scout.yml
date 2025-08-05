@@ -107,6 +107,4 @@ jobs:
         if: success()
         run: docker push mjtaehyung/proyecto:latest
 
-      - name: (Opcional) Desplegar imagen
-        if: success()
-        run: echo "Aquí iría tu script de despliegue o notificación"
+      
