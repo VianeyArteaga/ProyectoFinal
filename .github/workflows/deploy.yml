@@ -31,8 +31,8 @@ jobs:
 
       - name: Instalar Docker Scout CLI standalone
         run: |
-          curl -L https://github.com/docker/scout-cli/releases/latest/download/docker-scout_linux_amd64.tar.xz -o docker-scout_linux_amd64.tar.xz
-          tar -xJf docker-scout_linux_amd64.tar.xz
+          curl -L https://github.com/docker/scout-cli/releases/latest/download/docker-scout-linux-amd64 -o docker-scout
+          chmod +x docker-scout
           sudo mv docker-scout /usr/local/bin/
           docker-scout --help
 
