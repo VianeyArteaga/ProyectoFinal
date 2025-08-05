@@ -21,7 +21,7 @@ jobs:
       - name: Obtener versión del proyecto
         id: get_version
         run: |
-          VERSION=$(cat VERSION.txt)  # O usa package.json o tag de Git si prefieres
+          VERSION=$(cat VERSION.txt)  
           echo "Versión del proyecto: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
