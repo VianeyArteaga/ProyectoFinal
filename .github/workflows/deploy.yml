@@ -1,5 +1,3 @@
-name: CI/CD con Docker Compose y Docker Scout
-
 on:
   push:
     branches:
@@ -34,7 +32,7 @@ jobs:
           curl -L https://github.com/docker/scout-cli/releases/download/v1.18.2/docker-scout_1.18.2_linux_amd64.tar.gz -o docker-scout.tar.gz
           tar -xzf docker-scout.tar.gz
           sudo mv docker-scout /usr/local/bin/
-          docker-scout --version
+          docker-scout version   # ← cambio aquí
 
       - name: Login en Docker Hub
         uses: docker/login-action@v3
@@ -69,5 +67,3 @@ jobs:
       - name: Desplegar con Docker Compose
         run: |
           docker-compose --env-file .env up -d
-          
-
