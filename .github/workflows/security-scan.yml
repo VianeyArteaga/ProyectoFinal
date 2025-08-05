@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout del repositorio
+      - name: Clonar repositorio
         uses: actions/checkout@v4
 
       - name: Login en Docker Hub
@@ -30,5 +30,5 @@ jobs:
         with:
           image-ref: mjtaehyung/proyecto:latest
           format: table
-          exit-code: 1  # Fallar el workflow si hay vulnerabilidades críticas
+          exit-code: 1          # El workflow fallará si hay vulnerabilidades CRÍTICAS o ALTAS
           severity: CRITICAL,HIGH
