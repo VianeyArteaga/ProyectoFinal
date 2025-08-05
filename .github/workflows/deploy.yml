@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-scan-deploy:
-    runs-on: ubuntu-latest  # ubuntu-24.04 (noble)
+    runs-on: ubuntu-latest
 
     steps:
       - name: Clonar repositorio
@@ -29,9 +29,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-      - name: Verificar versión de Docker y Docker Scout
+      - name: Instalar Docker Scout CLI standalone
         run: |
-          docker --version
+          curl -L https://github.com/docker/scout-cli/releases/latest/download/docker-scout-linux-amd64.tar.gz | tar xz
+          sudo mv docker-scout /usr/local/bin/
           docker scout --help
 
       - name: Login en Docker Hub
