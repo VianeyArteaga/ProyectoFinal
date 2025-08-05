@@ -1,4 +1,4 @@
-name: Supervisión continua de seguridad con Docker Scout
+name: Supervisión continua de seguridad con Trivy
 
 on:
   push:
@@ -25,7 +25,10 @@ jobs:
       - name: Subir imagen a Docker Hub
         run: docker push mjtaehyung/proyecto:latest
 
-      - name: Escanear imagen con Docker Scout
-        run: |
-          docker scout quickview mjtaehyung/proyecto:latest
-          docker scout cves mjtaehyung/proyecto:latest
+      - name: Escanear imagen con Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: mjtaehyung/proyecto:latest
+          format: table
+          exit-code: 1  # Fallar el workflow si hay vulnerabilidades críticas
+          severity: CRITICAL,HIGH
