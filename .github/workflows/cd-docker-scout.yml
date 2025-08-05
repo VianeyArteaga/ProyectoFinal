@@ -24,10 +24,10 @@ jobs:
       - name: Instalar Docker Scout
         run: |
           curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
-          sudo mv bin/scout /usr/local/bin/docker-scout
+          echo "$HOME/.docker/cli-plugins" >> $GITHUB_PATH
 
       - name: Escanear imagen con Docker Scout
-        run: docker-scout cves mjtaehyung/proyecto:latest
+        run: docker scout cves mjtaehyung/proyecto:latest
 
       - name: Subir imagen a Docker Hub
         run: docker push mjtaehyung/proyecto:latest
